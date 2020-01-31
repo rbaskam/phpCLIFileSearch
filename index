@@ -1,0 +1,39 @@
+#!/usr/bin/php
+<?php
+use Cli\App;
+use App\Services\Search\FileSearchService;
+use App\Command\SearchController;
+
+/**
+ * Check that its only a CLI
+ */
+$sapiType = php_sapi_name();
+if (substr($sapiType, 0, 3) !== 'cli') {
+    echo "You are not using CGI PHP\n";
+    exit;
+}
+try{
+    /**
+     * Check that there are 3 params
+     */
+    if (count($argv) !== 3) {
+        //Unexpected number of parameters
+        throw new \Exception("usage: ./index search [ PathToDirectoryContainingTextFiles ]");
+    }
+
+    require __DIR__ . '/vendor/autoload.php';
+
+    $app = new App();
+    
+
+    //Check for the search param and 
+    $app->registerController('search', new SearchController($app, new FileSearchService()));
+
+    $app->registerCommand('help', function (array $argv) use ($app) {
+        $app->getPrinter()->display("usage: ./index search [ PathToDirectoryContainingTextFiles ]");
+    });
+
+    $app->runCommand($argv);
+} catch(Exception $e){
+    echo $e->getMessage();
+}
